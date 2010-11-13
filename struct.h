@@ -46,7 +46,7 @@
 #define FLG_NOTINY		16
 #define	FLG_NOSMALL		32
 
-#define FLG_CELL		1
+#define FLG_CALC		1
 
 //Homeworld flags
 #define FLG_FLATHW		1
@@ -85,6 +85,13 @@
 #define NORMAL_G              1
 #define HEAVY_G               2
 #define MAX_PLANET_GRAVITIES  3
+
+//Size
+#define TINY	0
+#define	SMALL	1
+#define	MEDIUM	2
+#define	LARGE	3
+#define HUGE	4
 
 STRUCT_TYPE starSystem {
 

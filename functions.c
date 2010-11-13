@@ -184,7 +184,6 @@ void modifyHW(struct planet *aPlanets, struct starSystem *ptrSystem, unsigned in
 
 	unsigned char i, nDonePlanets = 0, nHwGravity;
 	struct planet *ptrPlanet;
-	char nSetGravity = 0;
 
 	if (flags & FLG_FLATHW || flags & FLG_FIXEDHW) {
 
@@ -218,21 +217,33 @@ void modifyHW(struct planet *aPlanets, struct starSystem *ptrSystem, unsigned in
 					ptrPlanet->nFoodBase = 2;
 				}
 
-				//Set Gravity
-				if (!nSetGravity) {
-					ptrPlanet->nPlanetGravity = nHwGravity;
-					nSetGravity = 1;
-				}
-				else
-					ptrPlanet->nPlanetGravity = 1;
+				//Set Gravity & Size
+				switch (nDonePlanets) {
+					case 0: //Swamp
+						ptrPlanet->nPlanetGravity = nHwGravity;
+						ptrPlanet->nPlanetSize = LARGE;
+					break;
+					case 1: //Arid
+						ptrPlanet->nPlanetGravity = NORMAL_G;
+						ptrPlanet->nPlanetSize = LARGE;
+					break;
+					case 2: //Tundra
+						if (nHwGravity == LOW_G)
+							ptrPlanet->nPlanetGravity = LOW_G;
+						else
+							ptrPlanet->nPlanetGravity = NORMAL_G;
 
-				//Set Size
-				if (nDonePlanets == 0 || nDonePlanets == 1)
-					ptrPlanet->nPlanetSize = 3;
-				else if (nDonePlanets == 2)
-					ptrPlanet->nPlanetSize = 2;
-				else
-					ptrPlanet->nPlanetSize = 1;
+						ptrPlanet->nPlanetSize = LARGE;
+					break;
+					case 3: //Gaia
+						if (nHwGravity == LOW_G)
+							ptrPlanet->nPlanetGravity = LOW_G;
+						else
+							ptrPlanet->nPlanetGravity = NORMAL_G;
+
+						ptrPlanet->nPlanetSize = SMALL;
+					break;
+				}
 
 				//Make planet Enviroment Class fixed if we have to.
 				if (flags & FLG_FIXEDHW) {
@@ -268,6 +279,5 @@ void modifyHW(struct planet *aPlanets, struct starSystem *ptrSystem, unsigned in
 }
 
 void balanceGalaxy(struct galaxy *galaxy) {
-
 
 }

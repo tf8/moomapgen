@@ -13,10 +13,13 @@ unsigned char verbose = 0;
 int main(int argc, char *argv[]) {
 
 	unsigned int i, opt;
-	FILE *fp;
+	FILE *fp, *fp2;
 	unsigned int terraformFlags = 0, hwFlags = 0, specialsFlags = 0, monsterFlags = 0, balanceFlags = 0;
 
+	unsigned char byte;
+
 	char sSaveFile[100] = "SAVE10.GAM";
+	char sBakFile[100] = "MAPGEN.GAM";
 
 	while ((opt = getopt(argc, argv, "ht:s:m:b:f:vV")) != -1) {
 		switch (opt) {
@@ -43,7 +46,9 @@ int main(int argc, char *argv[]) {
 					"        Large, Large again, Medium, Small untill\n"
 					"        there are no more planets to modify. Gaias become Terrain.\n"
 					"      fixedhw - Implies `flathw`. Planets become:\n"
-					"        Large Abundant Swamp, Large Abundant Arid, Medium Poor Tundra, Small Poor Gaia.\n\n"
+					"        Large Abundant Swamp, Large Abundant Arid, Large Poor Tundra, Small Poor Gaia, all normalG.\n"
+					"		 If your homeworld is lowG, than all other planets except Arid become lowG.\n"
+					"		 If your homeworld is heavyG, than Swamp becomes heavyG, others become normalG\n\n"
 
 					"  -s Specials Change\n"
 					"      splint - Splinter replaced by gem deposits.\n"
@@ -56,8 +61,7 @@ int main(int argc, char *argv[]) {
 					"      monst - Does the same thing as -mgrav and -mterraform.\n\n"
 
 /*					"  -b Balance Galaxy\n"
-					"      cell - Currently does nothing.\n\n"
-*/
+					"	   calc - Calculate opponent starts and print out results\n\n"*/
 					"  -v Verbose debugging output(CHEAT!)\n\n"
 
 					"  -V Print Version and exit\n\n"
@@ -127,7 +131,7 @@ int main(int argc, char *argv[]) {
 				}
 			break;
 			case 'f':
-				sprintf(sSaveFile, "%s", optarg);
+				snprintf(sSaveFile, sizeof(sSaveFile), "%s", optarg);
 			break;
 			case 'v':
 				verbose = 1;
@@ -136,7 +140,7 @@ int main(int argc, char *argv[]) {
 				printf("Version: %s\n", MAPGEN_VERSION);
 				exit(0);
 			case 'b':
-					balanceFlags |= FLG_CELL;
+					balanceFlags |= FLG_CALC;
 			break;
 			default:
 				fprintf(stderr, "Usage: %s [-h] [-t terraform_type] [-f file]\n", argv[0]);
@@ -150,8 +154,26 @@ int main(int argc, char *argv[]) {
 	if (fp == NULL) {
 
 		fprintf(stderr, "Can not open %s", sSaveFile);
-		return 0;
+		return 1;
 	}
+
+	//Backup file.
+	fp2 = fopen(sBakFile, "w+");
+
+	if (fp2 == NULL) {
+
+		fprintf(stderr, "Can not open/create %s", sBakFile);
+		fclose(fp2);
+		return 1;
+	}
+
+	while(!feof(fp)) {
+
+			fread(&byte, 1, 1, fp);
+			fwrite(&byte, 1, 1, fp2);
+	}
+
+	fclose(fp2);
 
 	//Reading Star Systems information.
 	getFileData(aStarSystems, sizeof aStarSystems, STAR_OFFSET, fp);
