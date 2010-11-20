@@ -1,9 +1,6 @@
 #include "mapgen.h"
 
-struct starSystem aStarSystems[MAX_SYSTEMS];
-struct planet aPlanets[MAX_PLANETS];
-struct ship aShips[MAX_SHIPS];
-struct starSystem *ptrSystem;
+struct star *ptrSystem;
 struct galaxy galaxy;
 unsigned char nNumOfPlayers, nNumOfStars;
 unsigned short nNumOfPlanets;
@@ -60,8 +57,8 @@ int main(int argc, char *argv[]) {
 					"        Toxics, Rads, Barrens, Deserts become Tundra.\n"
 					"      monst - Does the same thing as -mgrav and -mterraform.\n\n"
 
-/*					"  -b Balance Galaxy\n"
-					"	   calc - Calculate opponent starts and print out results\n\n"*/
+					"  -b Balance Galaxy\n"
+					"	   calc - Calculate opponent starts and print out results\n\n"
 					"  -v Verbose debugging output(CHEAT!)\n\n"
 
 					"  -V Print Version and exit\n\n"
@@ -175,16 +172,20 @@ int main(int argc, char *argv[]) {
 
 	fclose(fp2);
 
+	//Try to read all save data, its useless, for sure, cause exact structure size and offsets are not precide.
+	getFileData(&galaxy, sizeof galaxy, 0, fp);
+
 	//Reading Star Systems information.
-	getFileData(aStarSystems, sizeof aStarSystems, STAR_OFFSET, fp);
-	galaxy.aStars = aStarSystems;
+	getFileData(&galaxy.aStars, sizeof galaxy.aStars, STAR_OFFSET, fp);
 
 	//Reading Planets information.
-	getFileData(&aPlanets, sizeof aPlanets, PLANET_OFFSET, fp);
-	galaxy.aPlanets = aPlanets;
+	getFileData(&galaxy.aPlanets, sizeof galaxy.aPlanets, PLANET_OFFSET, fp);
 
 	//Reading Ships information.
-	getFileData(&aShips, sizeof aShips, SHIP_OFFSET, fp);
+	getFileData(&galaxy.aShips, sizeof galaxy.aShips, SHIP_OFFSET, fp);
+
+	//Reading Players information.
+	getFileData(&galaxy.aPlayers, sizeof galaxy.aPlayers, PLAYER_OFFSET, fp);
 
 	getFileData(&nNumOfStars, sizeof nNumOfStars, NUM_OF_STARS_OFFSET, fp);
 	galaxy.nNumOfStars = &nNumOfStars;
@@ -195,8 +196,9 @@ int main(int argc, char *argv[]) {
 	getFileData(&nNumOfPlayers, sizeof nNumOfPlayers, NUM_OF_PLAYERS_OFFSET, fp);
 	galaxy.nNumOfPlayers = &nNumOfPlayers;
 
-	getHwCoords(aStarSystems, aHwCoordinates, nNumOfStars, aPlanets);
+	getHwCoords(galaxy.aStars, aHwCoordinates, nNumOfStars, galaxy.aPlanets);
 	galaxy.aHwCoordinates = (unsigned int *) aHwCoordinates;
+
 
 	//Map generation.
 	if (balanceFlags) {
@@ -206,27 +208,27 @@ int main(int argc, char *argv[]) {
 
 	//All planets terraformation.
 	if (terraformFlags || specialsFlags || monsterFlags)
-		terraform(aStarSystems, aPlanets, aShips, nNumOfPlanets, nNumOfStars, terraformFlags, specialsFlags, monsterFlags);
+		terraform(galaxy.aStars, galaxy.aPlanets, galaxy.aShips, nNumOfPlanets, nNumOfStars, terraformFlags, specialsFlags, monsterFlags);
 
 	//Homeworld modification.
 	if (hwFlags) {
 
 		for (i = 0; i != nNumOfPlayers; i++) {
 
-			ptrSystem = &aStarSystems[aHwCoordinates[i][2]];
-			modifyHW(aPlanets, ptrSystem, aHwCoordinates[i][2], hwFlags);
+			ptrSystem = &galaxy.aStars[aHwCoordinates[i][2]];
+			modifyHW(galaxy.aPlanets, ptrSystem, aHwCoordinates[i][2], hwFlags);
 		}
 	}
 
 	//Writing Planets information.
 	fseek(fp, PLANET_OFFSET, SEEK_SET);
 
-	fwrite(&aPlanets, sizeof aPlanets, 1, fp);
+	fwrite(&galaxy.aPlanets, sizeof galaxy.aPlanets, 1, fp);
 
 	//Writing Star Systems information.
 	fseek(fp, STAR_OFFSET, SEEK_SET);
 
-	fwrite(&aStarSystems, sizeof aStarSystems, 1, fp);
+	fwrite(&galaxy.aStars, sizeof galaxy.aStars, 1, fp);
 
 	//Writing Star Systems ammount.
 	fseek(fp, NUM_OF_STARS_OFFSET, SEEK_SET);

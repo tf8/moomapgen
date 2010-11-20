@@ -18,7 +18,7 @@ void tohex(void *string, unsigned int length) {
 	printf("\n");
 }
 
-void printSystem(struct starSystem* starSystem, struct planet *aPlanets) {
+void printSystem(struct star* starSystem, struct planet *aPlanets) {
 
 	unsigned char i;
 	struct planet *ptrPlanet;
@@ -59,7 +59,7 @@ void getFileData(void *storage, unsigned long length, unsigned long offset, FILE
 	fread(storage, length, 1, fp);
 }
 
-void getHwCoords(struct starSystem *aStarSystems, unsigned int aHwCoordinates[][3], unsigned char nNumOfStars, struct planet *aPlanets) {
+void getHwCoords(struct star *aStarSystems, unsigned int aHwCoordinates[][3], unsigned char nNumOfStars, struct planet *aPlanets) {
 
 	unsigned char i;
 
@@ -83,7 +83,7 @@ void getHwCoords(struct starSystem *aStarSystems, unsigned int aHwCoordinates[][
 	}
 }
 
-void terraform(struct starSystem *aStarSystems, struct planet *aPlanets, struct ship *aShips, unsigned short nPlanets, unsigned short nStars,
+void terraform(struct star *aStarSystems, struct planet *aPlanets, struct ship *aShips, unsigned short nPlanets, unsigned short nStars,
 	unsigned int flags, unsigned int specialsFlags, unsigned int monsterFlags) {
 
 	unsigned int i, j;
@@ -180,7 +180,7 @@ void terraform(struct starSystem *aStarSystems, struct planet *aPlanets, struct 
 	}
 }
 
-void modifyHW(struct planet *aPlanets, struct starSystem *ptrSystem, unsigned int nSystemID, unsigned int flags) {
+void modifyHW(struct planet *aPlanets, struct star *ptrSystem, unsigned int nSystemID, unsigned int flags) {
 
 	unsigned char i, nDonePlanets = 0, nHwGravity;
 	struct planet *ptrPlanet;
@@ -280,4 +280,11 @@ void modifyHW(struct planet *aPlanets, struct starSystem *ptrSystem, unsigned in
 
 void balanceGalaxy(struct galaxy *galaxy) {
 
+	int i;
+	struct star *ptrHW;
+	for (i = 0; i != 8; i++) {
+
+		ptrHW = &galaxy->aStars[galaxy->aPlanets[galaxy->aPlayers[i].home_planet_id].nStarID];
+		printf("%s; %s | x:%d y:%d;\n", galaxy->aPlayers[i].name, ptrHW->sName, ptrHW->nXpos, ptrHW->nYpos);
+	}
 }
